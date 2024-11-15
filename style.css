@@ -1,0 +1,13 @@
+body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+  }
+  
+  .table th, .table td {
+    text-align: center;
+  }
+  
+  .pagination .page-link {
+    cursor: pointer;
+  }
+  
