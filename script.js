@@ -2,7 +2,7 @@ const apiUrl = 'https://api.v1.juniorapeles.xyz'; // Alterar para URL da API qua
 
 async function fetchBooks() {
     try {
-        const response = await fetch(`${apiUrl}/books?page=0&size=5`);
+        const response = await fetch(`${apiUrl}/books`);
         if (response.ok) {
             const data = await response.json();
             renderBooks(data.content || []);
