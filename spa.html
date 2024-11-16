@@ -8,164 +8,94 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            padding-top: 20px;
+            padding: 20px;
         }
-        .book {
+        .book-card {
             margin-bottom: 20px;
         }
         .book-form input, .book-form textarea {
             margin-bottom: 10px;
         }
-        .card {
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>House of Books</h1>
+        <h1 class="text-center mb-4">House of Books</h1>
 
-        <!-- Livros Cadastrados -->
+        <!-- Seção de Livros -->
         <div id="books-container">
-            <h3>Livros Cadastrados</h3>
+            <h3>Livros Disponíveis</h3>
             <div id="response-message"></div>
             <div class="row" id="books-list"></div>
         </div>
 
-        <!-- Adicionar Novo Livro -->
+        <!-- Formulário para Adicionar Livro -->
         <hr>
         <h3>Adicionar Novo Livro</h3>
-        <div id="book-form">
-            <form class="book-form" onsubmit="addBook(event)">
-                <div class="mb-3">
-                    <label for="book-name" class="form-label">Nome do Livro</label>
-                    <input type="text" id="book-name" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label for="book-author" class="form-label">Nome do Autor</label>
-                    <input type="text" id="book-author" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label for="book-description" class="form-label">Descrição</label>
-                    <textarea id="book-description" class="form-control" rows="3" required></textarea>
-                </div>
-                <div class="mb-3">
-                    <label for="book-borrowed" class="form-label">Emprestado</label>
-                    <select id="book-borrowed" class="form-control">
-                        <option value="false">Não</option>
-                        <option value="true">Sim</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary">Adicionar Livro</button>
-            </form>
-        </div>
+        <form class="book-form" onsubmit="addBook(event)">
+            <div class="mb-3">
+                <label for="book-name" class="form-label">Título</label>
+                <input type="text" id="book-name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="book-author" class="form-label">Autor</label>
+                <input type="text" id="book-author" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="book-description" class="form-label">Descrição</label>
+                <textarea id="book-description" class="form-control" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="book-borrowed" class="form-label">Emprestado</label>
+                <select id="book-borrowed" class="form-select">
+                    <option value="false">Não</option>
+                    <option value="true">Sim</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Adicionar Livro</button>
+        </form>
     </div>
 
-    <script>
-        const apiUrl = 'https://house-of-docker-tagname.onrender.com'; // URL da sua API ajustada
-
-        // Buscar livros
-        async function fetchBooks() {
-            try {
-                const response = await fetch(`${apiUrl}/books?page=0&size=5`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (Array.isArray(data.content)) {
-                        renderBooks(data.content);
-                    } else {
-                        throw new Error('Formato de resposta inesperado.');
-                    }
-                } else {
-                    throw new Error('Erro ao buscar livros: ' + response.statusText);
-                }
-            } catch (error) {
-                console.error(error);
-                document.getElementById('response-message').innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        Erro ao buscar os livros: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        // Renderizar livros
-        function renderBooks(bookList) {
-            const booksContainer = document.getElementById('books-list');
-            booksContainer.innerHTML = ''; // Limpar conteúdo
-
-            if (bookList.length === 0) {
-                booksContainer.innerHTML = `
-                    <div class="alert alert-warning" role="alert">
-                        Nenhum livro encontrado.
-                    </div>
-                `;
-                return;
-            }
-
-            bookList.forEach(book => {
-                const bookDiv = document.createElement('div');
-                bookDiv.classList.add('col-12', 'col-md-4', 'book');
-                bookDiv.innerHTML = `
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">${book.name}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">${book.authorName}</h6>
-                            <p class="card-text">${book.description}</p>
-                            <p><strong>Emprestado:</strong> ${book.borrowed ? 'Sim' : 'Não'}</p>
+    <!-- Modal para Editar Livro -->
+    <div class="modal fade" id="editBookModal" tabindex="-1" aria-labelledby="editBookModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editBookModalLabel">Editar Livro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editBookForm">
+                        <div class="mb-3">
+                            <label for="editBookName" class="form-label">Título</label>
+                            <input type="text" class="form-control" id="editBookName" required>
                         </div>
-                    </div>
-                `;
-                booksContainer.appendChild(bookDiv);
-            });
-        }
-
-        // Adicionar livro
-        async function addBook(event) {
-            event.preventDefault();
-
-            const name = document.getElementById('book-name').value;
-            const author = document.getElementById('book-author').value;
-            const description = document.getElementById('book-description').value;
-            const borrowed = document.getElementById('book-borrowed').value === 'true';
-
-            const newBook = { name, authorName: author, description, borrowed };
-
-            try {
-                const response = await fetch(`${apiUrl}/books`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(newBook)
-                });
-
-                if (response.ok) {
-                    fetchBooks();
-                    document.querySelector('.book-form').reset();
-                    document.getElementById('response-message').innerHTML = `
-                        <div class="alert alert-success" role="alert">
-                            Livro adicionado com sucesso!
+                        <div class="mb-3">
+                            <label for="editBookAuthor" class="form-label">Autor</label>
+                            <input type="text" class="form-control" id="editBookAuthor" required>
                         </div>
-                    `;
-                } else {
-                    throw new Error('Erro ao adicionar o livro');
-                }
-            } catch (error) {
-                console.error(error);
-                document.getElementById('response-message').innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        Erro ao adicionar o livro: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        // Carregar livros ao iniciar
-        window.onload = fetchBooks;
-    </script>
+                        <div class="mb-3">
+                            <label for="editBookDescription" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="editBookDescription" rows="3" required></textarea>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="editBookBorrowed">
+                            <label class="form-check-label" for="editBookBorrowed">Emprestado</label>
+                        </div>
+                        <input type="hidden" id="editBookId">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveBookChanges()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="./script.js"></script>
 </body>
 </html>

@@ -1,171 +1,265 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>House of Books</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Gestão de Livros</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            padding-top: 20px;
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
         }
-        .book {
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        h1 {
+            color: #343a40;
+            margin-bottom: 30px;
+        }
+
+        .dark-mode h1 {
+            color: #ffffff;
+        }
+
+        .form-label {
+            color: #495057;
+        }
+
+        .dark-mode .form-label {
+            color: #ffffff;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .dark-mode .btn-primary {
+            background-color: #6200ea;
+            border-color: #6200ea;
+        }
+
+        .dark-mode .btn-primary:hover {
+            background-color: #3700b3;
+            border-color: #3700b3;
+        }
+
+        .container {
+            max-width: 900px;
+        }
+
+        .book-card {
             margin-bottom: 20px;
         }
-        .book-form input, .book-form textarea {
-            margin-bottom: 10px;
+
+        .card-body {
+            padding: 20px;
         }
-        .card {
-            cursor: pointer;
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .card-text {
+            font-size: 1rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+        }
+
+        .dark-mode .form-control,
+        .dark-mode .form-select {
+            background-color: #333333;
+            color: #ffffff;
+        }
+
+        .dark-mode .book-card {
+            background-color: #333333;
+            border-color: #444;
+        }
+
+        .dark-mode .card-body {
+            color: #ffffff;
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+        }
+        .book-card .card-body {
+            color: black !important;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>House of Books</h1>
+    <div class="container mt-5">
+        <h1 class="text-center" id="page-title">Gestão de Livros</h1>
+        
+        <button class="btn btn-secondary mb-3" onclick="toggleDarkMode()" id="dark-mode-btn">Alternar Modo Escuro</button>
+        <button class="btn btn-secondary mb-3" onclick="toggleLanguage()" id="language-btn">Alternar Idioma</button>
 
-        <!-- Livros Cadastrados -->
-        <div id="books-container">
-            <h3>Livros Cadastrados</h3>
-            <div id="response-message"></div>
-            <div class="row" id="books-list"></div>
-        </div>
+        <form class="book-form" onsubmit="addBook(event)">
+            <div class="mb-3">
+                <label for="book-name" class="form-label" id="book-name-label">Nome do Livro</label>
+                <input type="text" id="book-name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="book-author" class="form-label" id="book-author-label">Autor</label>
+                <input type="text" id="book-author" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="book-description" class="form-label" id="book-description-label">Descrição</label>
+                <textarea id="book-description" class="form-control" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="book-borrowed" class="form-label" id="book-borrowed-label">Emprestado</label>
+                <select id="book-borrowed" class="form-select">
+                    <option value="true" id="borrowed-yes">Sim</option>
+                    <option value="false" id="borrowed-no">Não</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" id="add-book-btn">Adicionar Livro</button>
+        </form>
 
-        <!-- Adicionar Novo Livro -->
-        <hr>
-        <h3>Adicionar Novo Livro</h3>
-        <div id="book-form">
-            <form class="book-form" onsubmit="addBook(event)">
-                <div class="mb-3">
-                    <label for="book-name" class="form-label">Nome do Livro</label>
-                    <input type="text" id="book-name" class="form-control" required>
+        <div id="response-message" class="mt-3"></div>
+
+        <div id="books-list" class="row mt-5"></div>
+    </div>
+
+    <!-- Modal Editar Livro -->
+    <div class="modal fade" id="editBookModal" tabindex="-1" aria-labelledby="editBookModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editBookModalLabel">Editar Livro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
-                <div class="mb-3">
-                    <label for="book-author" class="form-label">Nome do Autor</label>
-                    <input type="text" id="book-author" class="form-control" required>
+                <div class="modal-body">
+                    <form id="editBookForm">
+                        <input type="hidden" id="editBookId">
+                        <div class="mb-3">
+                            <label for="editBookName" class="form-label">Nome do Livro</label>
+                            <input type="text" id="editBookName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBookAuthor" class="form-label">Autor</label>
+                            <input type="text" id="editBookAuthor" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBookDescription" class="form-label">Descrição</label>
+                            <textarea id="editBookDescription" class="form-control" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBookBorrowed" class="form-label">Emprestado</label>
+                            <input type="checkbox" id="editBookBorrowed" class="form-check-input">
+                        </div>
+                    </form>
                 </div>
-                <div class="mb-3">
-                    <label for="book-description" class="form-label">Descrição</label>
-                    <textarea id="book-description" class="form-control" rows="3" required></textarea>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveBookChanges()">Salvar Alterações</button>
                 </div>
-                <div class="mb-3">
-                    <label for="book-borrowed" class="form-label">Emprestado</label>
-                    <select id="book-borrowed" class="form-control">
-                        <option value="false">Não</option>
-                        <option value="true">Sim</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary">Adicionar Livro</button>
-            </form>
+            </div>
         </div>
     </div>
 
-    <script>
-        const apiUrl = 'https://house-of-docker-tagname.onrender.com'; // URL da sua API ajustada
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
 
-        // Buscar livros
-        async function fetchBooks() {
-            try {
-                const response = await fetch(`${apiUrl}/books?page=0&size=5`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (Array.isArray(data.content)) {
-                        renderBooks(data.content);
-                    } else {
-                        throw new Error('Formato de resposta inesperado.');
-                    }
-                } else {
-                    throw new Error('Erro ao buscar livros: ' + response.statusText);
+    <script>
+        let currentLanguage = 'pt'; // idioma padrão
+
+        // Função para obter a tradução de acordo com o idioma
+        function getTranslatedText(key) {
+            const texts = {
+                pt: {
+                    pageTitle: "Gestão de Livros",
+                    borrowed: "Emprestado",
+                    yes: "Sim",
+                    no: "Não",
+                    edit: "Editar",
+                    delete: "Excluir",
+                    return: "Devolver",
+                    borrow: "Emprestar",
+                    addBook: "Adicionar Livro",
+                    bookNameLabel: "Nome do Livro",
+                    bookAuthorLabel: "Autor",
+                    bookDescriptionLabel: "Descrição",
+                    bookBorrowedLabel: "Emprestado",
+                    languageButton: "Alternar Idioma",
+                    darkModeButton: "Alternar Modo Escuro"
+                },
+                en: {
+                    pageTitle: "Book Management",
+                    borrowed: "Borrowed",
+                    yes: "Yes",
+                    no: "No",
+                    edit: "Edit",
+                    delete: "Delete",
+                    return: "Return",
+                    borrow: "Borrow",
+                    addBook: "Add Book",
+                    bookNameLabel: "Book Name",
+                    bookAuthorLabel: "Author",
+                    bookDescriptionLabel: "Description",
+                    bookBorrowedLabel: "Borrowed",
+                    languageButton: "Change Language",
+                    darkModeButton: "Toggle Dark Mode"
                 }
-            } catch (error) {
-                console.error(error);
-                document.getElementById('response-message').innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        Erro ao buscar os livros: ${error.message}
-                    </div>
-                `;
-            }
+            };
+
+            return texts[currentLanguage][key];
         }
 
-        // Renderizar livros
-        function renderBooks(bookList) {
-            const booksContainer = document.getElementById('books-list');
-            booksContainer.innerHTML = ''; // Limpar conteúdo
-
-            if (bookList.length === 0) {
-                booksContainer.innerHTML = `
-                    <div class="alert alert-warning" role="alert">
-                        Nenhum livro encontrado.
-                    </div>
-                `;
-                return;
-            }
-
-            bookList.forEach(book => {
-                const bookDiv = document.createElement('div');
-                bookDiv.classList.add('col-12', 'col-md-4', 'book');
-                bookDiv.innerHTML = `
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">${book.name}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">${book.authorName}</h6>
-                            <p class="card-text">${book.description}</p>
-                            <p><strong>Emprestado:</strong> ${book.borrowed ? 'Sim' : 'Não'}</p>
-                        </div>
-                    </div>
-                `;
-                booksContainer.appendChild(bookDiv);
+        // Função para alternar entre modos escuro e claro
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            // Manter as fontes no card em preto no modo escuro
+            const cards = document.querySelectorAll('.book-card .card-body');
+            cards.forEach(card => {
+                card.style.color = 'black'; // Forçar o texto para preto
             });
         }
 
-        // Adicionar livro
-        async function addBook(event) {
-            event.preventDefault();
 
-            const name = document.getElementById('book-name').value;
-            const author = document.getElementById('book-author').value;
-            const description = document.getElementById('book-description').value;
-            const borrowed = document.getElementById('book-borrowed').value === 'true';
-
-            const newBook = { name, authorName: author, description, borrowed };
-
-            try {
-                const response = await fetch(`${apiUrl}/books`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(newBook)
-                });
-
-                if (response.ok) {
-                    fetchBooks();
-                    document.querySelector('.book-form').reset();
-                    document.getElementById('response-message').innerHTML = `
-                        <div class="alert alert-success" role="alert">
-                            Livro adicionado com sucesso!
-                        </div>
-                    `;
-                } else {
-                    throw new Error('Erro ao adicionar o livro');
-                }
-            } catch (error) {
-                console.error(error);
-                document.getElementById('response-message').innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        Erro ao adicionar o livro: ${error.message}
-                    </div>
-                `;
-            }
+        // Função para alternar entre idiomas
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'pt' ? 'en' : 'pt';
+            updateLanguage();
         }
 
-        // Carregar livros ao iniciar
-        window.onload = fetchBooks;
-    </script>
+        function updateLanguage() {
+            // Atualizar todos os textos da página
+            document.getElementById("page-title").textContent = getTranslatedText('pageTitle');
+            document.getElementById("book-name-label").textContent = getTranslatedText('bookNameLabel');
+            document.getElementById("book-author-label").textContent = getTranslatedText('bookAuthorLabel');
+            document.getElementById("book-description-label").textContent = getTranslatedText('bookDescriptionLabel');
+            document.getElementById("book-borrowed-label").textContent = getTranslatedText('bookBorrowedLabel');
+            document.getElementById("add-book-btn").textContent = getTranslatedText('addBook');
+            document.getElementById("language-btn").textContent = getTranslatedText('languageButton');
+            document.getElementById("dark-mode-btn").textContent = getTranslatedText('darkModeButton');
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+            // Atualizar opções de empréstimo
+            document.getElementById("borrowed-yes").textContent = getTranslatedText('yes');
+            document.getElementById("borrowed-no").textContent = getTranslatedText('no');
+        }
+    </script>
 </body>
+
 </html>
