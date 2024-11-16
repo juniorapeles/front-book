@@ -1,6 +1,5 @@
-const apiUrl = 'http://localhost:3000'; // Alterar para URL da API quando necessário
+const apiUrl = 'https://house-of-books-nqoo.onrender.com'; // Alterar para URL da API quando necessário
 
-// Buscar Livros
 async function fetchBooks() {
     try {
         const response = await fetch(`${apiUrl}/books?page=0&size=5`);
