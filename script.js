@@ -1,4 +1,4 @@
-const apiUrl = 'https://house-of-books-nqoo.onrender.com'; // Alterar para URL da API quando necessário
+const apiUrl = 'https://api.v1.juniorapeles.xyz'; // Alterar para URL da API quando necessário
 
 async function fetchBooks() {
     try {
