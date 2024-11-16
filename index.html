@@ -104,6 +104,23 @@
         .book-card .card-body {
             color: black !important;
         }
+
+        .dark-mode .modal-content {
+            background-color: #333333;  /* Fundo escuro para a modal */
+            color: #ffffff;  /* Texto branco dentro da modal */
+        }
+
+        .dark-mode .modal-header {
+            border-bottom: 1px solid #444;  /* Cor da borda do cabeçalho da modal */
+        }
+
+        .dark-mode .modal-body {
+            color: #ffffff;  /* Cor do texto no corpo da modal */
+        }
+
+        .dark-mode .modal-footer {
+            border-top: 1px solid #444;  /* Cor da borda do rodapé da modal */
+        }
     </style>
 </head>
 
@@ -230,7 +247,14 @@
         // Função para alternar entre modos escuro e claro
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
-            // Manter as fontes no card em preto no modo escuro
+            
+            // Alterando a cor do texto da modal para garantir que fique visível no modo escuro
+            const modalContent = document.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.color = document.body.classList.contains('dark-mode') ? '#ffffff' : 'black';
+            }
+
+            // Alterar as cores dos cards para forçar o texto para preto, se necessário
             const cards = document.querySelectorAll('.book-card .card-body');
             cards.forEach(card => {
                 card.style.color = 'black'; // Forçar o texto para preto

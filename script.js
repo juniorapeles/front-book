@@ -80,7 +80,7 @@ async function addBook(event) {
 window.onload = fetchBooks;
 
 function editBook(bookId) {
-    // Busque os dados do livro pelo ID
+
     fetch(`${apiUrl}/books/${bookId}`)
         .then(response => response.json())
         .then(book => {
@@ -98,13 +98,13 @@ function editBook(bookId) {
         .catch(error => console.error('Erro ao buscar livro:', error));
 }
 
-function saveBookChanges() {
-    const bookId = document.getElementById('editBookId').value;
-    const updatedBook = {
-        name: document.getElementById('editBookName').value,
-        authorName: document.getElementById('editBookAuthor').value,
-        description: document.getElementById('editBookDescription').value,
-        borrowed: document.getElementById('editBookBorrowed').checked
+    function saveBookChanges() {
+        const bookId = document.getElementById('editBookId').value;
+        const updatedBook = {
+            name: document.getElementById('editBookName').value,
+            authorName: document.getElementById('editBookAuthor').value,
+            description: document.getElementById('editBookDescription').value,
+            borrowed: document.getElementById('editBookBorrowed').checked
     };
 
     fetch(`${apiUrl}/books/${bookId}`, {
